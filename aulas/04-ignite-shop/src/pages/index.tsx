@@ -1,12 +1,15 @@
 import Image from "next/image"
 import Head from 'next/head'
+import { GetStaticProps } from "next"
 import Link from "next/link"
 
 import { useKeenSlider } from 'keen-slider/react'
 
+import { stripe } from "../lib/stripe"
 import { HomeContainer, Product } from "../styles/pages/home"
 
 import 'keen-slider/keen-slider.min.css'
+import Stripe from "stripe"
 
 interface HomeProps {
   products: {
@@ -18,19 +21,6 @@ interface HomeProps {
 }
 
 export default function Home({products}: HomeProps){
-  products = [{
-    id: "1",
-    name: "Product 1",
-    imageUrl: "https://images.unsplash.com/photo-1518365050014-70fe7232897f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjF8fHJvY2tldCUyMHQlMjBzaGlydHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60",
-    price: "100"
-  },{
-    id: "2",
-    name: "Product 2",
-    imageUrl: "https://images.unsplash.com/photo-1518365050014-70fe7232897f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjF8fHJvY2tldCUyMHQlMjBzaGlydHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60",
-    price: "100"
-  }
-
-  ];
 
   const [sliderRef] = useKeenSlider({
     slides: {
@@ -63,4 +53,32 @@ export default function Home({products}: HomeProps){
       </HomeContainer>
     </>
   )
+}
+
+export const getStaticProps: GetStaticProps = async () => {
+  const response = await stripe.products.list({
+    expand: ['data.default_price']
+  });
+
+
+  const products = response.data.map(product => {
+    const price = product.default_price as Stripe.Price;
+
+    return {
+      id: product.id,
+      name: product.name,
+      imageUrl: product.images[0],
+      price: new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format((price.unit_amount as number)/ 100 ),
+    }
+  })
+
+  return {
+    props: {
+      products
+    },
+    revalidate: 60 * 60 * 2 // 2 hours,
+  }
 }
