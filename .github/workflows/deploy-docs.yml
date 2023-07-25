@@ -17,9 +17,9 @@ jobs:
         with:
           node-version: '18'
 
-      - run: ./aulas/05-design-system/npm ci
+      - run: --prefix ./aulas/05-design-system/ run npm ci
 
-      - run: ./aulas/05-design-system/npm  run build
+      - run: --prefix ./aulas/05-design-system/ run npm  run build
 
       - name: Deploy storybook
         working-directory: ./aulas/05-design-system/packages/docs
