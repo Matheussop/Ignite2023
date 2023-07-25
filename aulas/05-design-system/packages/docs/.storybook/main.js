@@ -18,5 +18,12 @@ const config = {
   docs: {
     autodocs: "tag",
   },
+  viteFinal: (config, { configType }) => {
+    if (configType === 'PRODUCTION') {
+      config.base = '/Ignite2023/'
+    }
+
+    return config
+  }
 };
 export default config;
